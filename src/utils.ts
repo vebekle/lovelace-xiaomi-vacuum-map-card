@@ -12,6 +12,7 @@ import {
     Language,
     PredefinedPointConfig,
     PredefinedZoneConfig,
+    RoomConfig,
     ReplacedKey,
     VariablesStorage,
     XiaomiVacuumMapCardConfig,
@@ -54,6 +55,12 @@ export function getWatchedEntitiesForMapMode(mapMode: MapMode): Set<string> {
                 .map(m => m as PredefinedPointConfig)
                 .filter(p => typeof p.position === "string")
                 .forEach(p => watchedEntities.add((p.position as string).split(".attributes.")[0]));
+            break;
+        case SelectionType.ROOM: // VEK
+            mapMode.predefinedSelections
+                .map(m => m as RoomConfig)
+                .filter(p => typeof p.outline === "string")
+                .forEach(p => watchedEntities.add((p.outline as string).split(".attributes.")[0]));
             break;
     }
     return watchedEntities;

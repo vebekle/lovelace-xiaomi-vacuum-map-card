@@ -727,6 +727,17 @@ export class XiaomiVacuumMapCard extends LitElement {
                 this.selectablePredefinedRectangles = zonesFromEntities.concat(manualZones);
                 break;
             case SelectionType.ROOM:
+                const roomsFromEntities = Room.getFromEntities(newMode, this.hass, () =>
+                    this._getContext(),
+                );
+                const manualRooms = newMode.predefinedSelections
+                    .map(ps => ps as RoomConfig)
+                    .filter(ppc => typeof ppc.outline !== "string")
+                    .map(ppc => new Room(ppc, this._getContext()));
+                this.selectableRooms = roomsFromEntities.concat(manualRooms);
+                break;
+
+
                 this.selectableRooms = newMode.predefinedSelections.map(
                     ps => new Room(ps as RoomConfig, this._getContext()),
                 );

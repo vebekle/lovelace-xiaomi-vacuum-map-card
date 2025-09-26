@@ -5,7 +5,9 @@ import { forwardHaptic } from "custom-card-helpers";
 import { Context } from "./context";
 import { MapObject } from "./map-object";
 import { deleteFromArray } from "../../utils";
-import { RoomConfig, VariablesStorage } from "../../types/types";
+import { RoomConfig, VariablesStorage, OutlineType, PointType } from "../../types/types";
+import { MapMode } from "../map_mode/map-mode";
+import { HomeAssistantFixed } from "../../types/fixes";
 
 export class Room extends MapObject {
     private _selected: boolean;
@@ -17,12 +19,49 @@ export class Room extends MapObject {
         this._selected = false;
     }
 
+    public static getFromEntities(
+        newMode: MapMode,
+        hass: HomeAssistantFixed,
+        contextCreator: () => Context,
+    ): Room[] {
+        return newMode.predefinedSelections
+            .map(ps => ps as RoomConfig)
+            .filter(pzc => typeof pzc.outline === "string")
+            .map(pzc => (pzc.outline as string).split(".attributes."))
+            .flatMap(z => {
+                const entity = hass.states[z[0]];
+                const value = z.length === 2 ? entity.attributes[z[1]] : entity.state;
+                let parsed;
+                try {
+                    parsed = JSON.parse(value) as OutlineType;
+                } catch {
+                    parsed = value as OutlineType;
+                }
+                return parsed;
+            })
+            .map(
+                p =>
+                    new Room(
+                        {
+                            outline: p,
+                            id: 0,
+                        },
+                        contextCreator(),
+                    ),
+            );
+    }
+
     public get variables(): VariablesStorage {
         return this._config.variables ?? super.variables;
     }
 
     public render(): SVGTemplateResult {
-        const poly = (this._config?.outline ?? []).map(p => this.vacuumToScaledMap(p[0], p[1]));
+        let outlines: OutlineType = [];
+        if ((typeof this._config.outline !== "string") && (typeof this._config.outline !== "undefined")){
+            outlines = this._config.outline;
+        }
+        const poly = outlines.map(p => this.vacuumToScaledMap(p[0], p[1]));
+
         return svg`
             <g class="room-wrapper ${this._selected ? "selected" : ""} 
             room-${`${this._config.id}`.replace(" ", "_")}-wrapper">

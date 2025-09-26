@@ -239,7 +239,7 @@ export interface PredefinedPointConfig extends PredefinedSelectionCommonConfig {
 
 export interface RoomConfig extends PredefinedSelectionCommonConfig {
     readonly id: number | string;
-    readonly outline?: OutlineType;
+    readonly outline?: OutlineType | string;
 }
 
 export interface LabelConfig {
